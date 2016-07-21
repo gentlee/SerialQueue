@@ -1,0 +1,42 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{D845E407-4A4B-4534-8D3B-BA6D66799036}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialQueue", "SerialQueue\SerialQueue.csproj", "{45602ABC-5358-42B6-9DE8-ADD2129F0C25}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D845E407-4A4B-4534-8D3B-BA6D66799036}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D845E407-4A4B-4534-8D3B-BA6D66799036}.Debug|x86.Build.0 = Debug|Any CPU
+		{D845E407-4A4B-4534-8D3B-BA6D66799036}.Release|x86.ActiveCfg = Release|Any CPU
+		{D845E407-4A4B-4534-8D3B-BA6D66799036}.Release|x86.Build.0 = Release|Any CPU
+		{45602ABC-5358-42B6-9DE8-ADD2129F0C25}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{45602ABC-5358-42B6-9DE8-ADD2129F0C25}.Debug|x86.Build.0 = Debug|Any CPU
+		{45602ABC-5358-42B6-9DE8-ADD2129F0C25}.Release|x86.ActiveCfg = Release|Any CPU
+		{45602ABC-5358-42B6-9DE8-ADD2129F0C25}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.inheritsSet = VisualStudio
+		$1.inheritsScope = text/plain
+		$1.scope = text/x-csharp
+		$1.NoTabsAfterNonTabs = True
+		$1.EolMarker = Unix
+		$0.CSharpFormattingPolicy = $2
+		$2.inheritsSet = Mono
+		$2.inheritsScope = text/x-csharp
+		$2.scope = text/x-csharp
+		$2.NewLineForElse = True
+		$2.NewLineForCatch = True
+		$2.NewLineForFinally = True
+		$2.SpacingAfterMethodDeclarationName = False
+		$2.SpaceAfterMethodCallName = False
+		$2.SpaceBeforeOpenSquareBracket = False
+	EndGlobalSection
+EndGlobal
