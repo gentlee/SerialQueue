@@ -62,20 +62,24 @@ namespace Tests
             // Assign
 
             var queue = new SerialQueue();
+            var list = new List<int>();
             var tasks = new List<Task<int>>();
             var range = Enumerable.Range(0, 1000);
 
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.RunAsync(() => number));
+                tasks.Add(queue.RunAsync(() => {
+                    list.Add(number);
+                    return number;
+                }));
             }
 
             await Task.WhenAll(tasks);
 
             // Assert
 
-            Assert.True(range.SequenceEqual(tasks.Select(x => x.Result)));
+            Assert.True(tasks.Select(x => x.Result).SequenceEqual(list));
         }
     }
 }
