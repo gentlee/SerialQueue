@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Danilov
+namespace Threading
 {
     public class SerialQueue
     {
