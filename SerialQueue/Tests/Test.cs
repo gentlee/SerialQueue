@@ -11,14 +11,14 @@ namespace Tests
     [TestFixture()]
     public class Test
     {
-        [Test()]
+        [Test]
         public async Task TplIsNotFifo()
         {
             // Assign
 
             var list = new List<int>();
             var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 1000);
+            var range = Enumerable.Range(0, 10000);
 
             // Act
 
@@ -33,7 +33,7 @@ namespace Tests
             Assert.False(range.SequenceEqual(list));
         }
 
-        [Test()]
+        [Test]
         public async Task QueueAction()
         {
             // Assign
@@ -41,7 +41,7 @@ namespace Tests
             var queue = new SerialQueue();
             var list = new List<int>();
             var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 1000);
+            var range = Enumerable.Range(0, 10000);
 
             // Act
 
@@ -56,7 +56,7 @@ namespace Tests
             Assert.True(range.SequenceEqual(list));
         }
 
-        [Test()]
+        [Test]
         public async Task QueueFunction()
         {
             // Assign
@@ -64,7 +64,7 @@ namespace Tests
             var queue = new SerialQueue();
             var list = new List<int>();
             var tasks = new List<Task<int>>();
-            var range = Enumerable.Range(0, 1000);
+            var range = Enumerable.Range(0, 10000);
 
             // Act
 
