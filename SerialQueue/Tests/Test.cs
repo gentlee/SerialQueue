@@ -46,7 +46,7 @@ namespace Tests
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.RunAsync(() => list.Add(number)));
+                tasks.Add(queue.Run(() => list.Add(number)));
             }
 
             await Task.WhenAll(tasks);
@@ -69,7 +69,7 @@ namespace Tests
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.RunAsync(() => {
+                tasks.Add(queue.Run(() => {
                     list.Add(number);
                     return number;
                 }));

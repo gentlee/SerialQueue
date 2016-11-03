@@ -8,7 +8,7 @@ namespace Threading
         readonly object _locker = new object();
         Task _lastTask;
 
-        public Task RunAsync(Action action)
+        public Task Run(Action action)
         {
             lock (_locker) {
                 _lastTask = _lastTask != null ? _lastTask.ContinueWith(_ => action()) : Task.Run(action);
@@ -16,7 +16,7 @@ namespace Threading
             }
         }
 
-        public Task<T> RunAsync<T>(Func<T> function)
+        public Task<T> Run<T>(Func<T> function)
         {
             lock (_locker) {
                 var task = _lastTask != null ? _lastTask.ContinueWith(_ => function()) : Task.Run(function);
