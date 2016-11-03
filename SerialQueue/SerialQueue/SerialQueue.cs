@@ -8,21 +8,37 @@ namespace Threading
         readonly object _locker = new object();
         Task _lastTask;
 
-        public Task RunAsync(Action action)
+        public Task Run(Action action)
         {
             lock (_locker) {
-                _lastTask = _lastTask != null ? _lastTask.ContinueWith(_ => action()) : Task.Run(action);
-                return _lastTask;
+                var task = _lastTask != null ? _lastTask.ContinueWith(_ => action()) : Task.Run(action);
+                _lastTask = RemoveReferenceOnCompleted(task);
+                return task;
             }
         }
 
-        public Task<T> RunAsync<T>(Func<T> function)
+        public Task<T> Run<T>(Func<T> function)
         {
             lock (_locker) {
                 var task = _lastTask != null ? _lastTask.ContinueWith(_ => function()) : Task.Run(function);
-                _lastTask = task;
+                _lastTask = RemoveReferenceOnCompleted(task);
                 return task;
             }
+        }
+
+        Task RemoveReferenceOnCompleted(Task task)
+        {
+            Task continuationTask = null;
+            continuationTask = task.ContinueWith(t => {
+                if (continuationTask == _lastTask) {
+                    lock (_locker) {
+                        if (continuationTask == _lastTask) {
+                            _lastTask = null;
+                        }
+                    }
+                }
+            });
+            return continuationTask;
         }
     }
 }

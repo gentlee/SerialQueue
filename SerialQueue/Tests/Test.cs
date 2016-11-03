@@ -5,20 +5,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Reflection;
 
 namespace Tests
 {
     [TestFixture()]
     public class Test
     {
-        [Test()]
+        SerialQueue _queue;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _queue = new SerialQueue();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.NonPublic;
+            FieldInfo field = _queue.GetType().GetField("_lastTask", bindFlags);
+            Assert.Null(field.GetValue(_queue));
+        }
+
+        [Test]
         public async Task TplIsNotFifo()
         {
             // Assign
 
             var list = new List<int>();
             var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 1000);
+            var range = Enumerable.Range(0, 10000);
 
             // Act
 
@@ -33,20 +50,19 @@ namespace Tests
             Assert.False(range.SequenceEqual(list));
         }
 
-        [Test()]
+        [Test]
         public async Task QueueAction()
         {
             // Assign
 
-            var queue = new SerialQueue();
             var list = new List<int>();
             var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 1000);
+            var range = Enumerable.Range(0, 10000);
 
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.RunAsync(() => list.Add(number)));
+                tasks.Add(_queue.Run(() => list.Add(number)));
             }
 
             await Task.WhenAll(tasks);
@@ -56,20 +72,19 @@ namespace Tests
             Assert.True(range.SequenceEqual(list));
         }
 
-        [Test()]
+        [Test]
         public async Task QueueFunction()
         {
             // Assign
 
-            var queue = new SerialQueue();
             var list = new List<int>();
             var tasks = new List<Task<int>>();
-            var range = Enumerable.Range(0, 1000);
+            var range = Enumerable.Range(0, 10000);
 
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.RunAsync(() => {
+                tasks.Add(_queue.Run(() => {
                     list.Add(number);
                     return number;
                 }));
