@@ -6,10 +6,10 @@ Lightweight C# implementation of FIFO serial queues from ObjC, which is often mu
     async Task SomeAsyncMethod()
     {
       // C# 5
-      var result = await queue.RunAsync(LongRunningWork);
+      var result = await queue.Enqueue(LongRunningWork);
     
       // Old approach
-      queue.RunAsync(LongRunningWork).ContinueWith(t => {
+      queue.Enqueue(LongRunningWork).ContinueWith(t => {
           var result = t.Result;
       })
     }
