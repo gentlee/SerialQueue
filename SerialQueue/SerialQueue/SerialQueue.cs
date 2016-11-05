@@ -6,22 +6,37 @@ namespace Threading
     public class SerialQueue
     {
         readonly object _locker = new object();
-        Task _lastTask;
+        WeakReference<Task> _lastTask;
 
         public Task Enqueue(Action action)
         {
-            lock (_locker) {
-                _lastTask = _lastTask != null ? _lastTask.ContinueWith(_ => action()) : Task.Run(action);
-                return _lastTask;
+            lock (_locker)
+            {
+                return Enqueue<object>(() => {
+                    action();
+                    return null;
+                });
             }
         }
 
         public Task<T> Enqueue<T>(Func<T> function)
         {
-            lock (_locker) {
-                var task = _lastTask != null ? _lastTask.ContinueWith(_ => function()) : Task.Run(function);
-                _lastTask = task;
-                return task;
+            lock (_locker)
+            {
+                Task lastTask = null;
+                Task<T> resultTask = null;
+
+                if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
+                {
+                    resultTask = lastTask.ContinueWith(_ => function());
+                }
+                else
+                {
+                    resultTask = Task.Run(function);
+                }
+
+                _lastTask = new WeakReference<Task>(resultTask);
+                return resultTask;
             }
         }
     }

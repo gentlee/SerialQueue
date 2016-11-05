@@ -81,6 +81,31 @@ namespace Tests
 
             Assert.True(tasks.Select(x => x.Result).SequenceEqual(list));
         }
+
+        [Test]
+        public void EnqueueFromMultipleThreads()
+        {
+            // Assign
+
+            const int count = 10000;
+            var queue = new SerialQueue();
+            var list = new List<int>();
+
+            // Act
+
+            var counter = 0;
+            for (int i = 0; i < count; i++) {
+                Task.Run(() => {
+                    queue.Enqueue(() => list.Add(counter++));
+                });
+            }
+
+            while (list.Count != count) {};
+
+            // Assert
+
+            Assert.True(list.SequenceEqual(Enumerable.Range(0, count)));
+        }
     }
 }
 
