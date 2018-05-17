@@ -10,13 +10,10 @@ namespace Threading
 
         public Task Enqueue(Action action)
         {
-            lock (_locker)
-            {
-                return Enqueue<object>(() => {
-                    action();
-                    return null;
-                });
-            }
+            return Enqueue<object>(() => {
+                action();
+                return null;
+            });
         }
 
         public Task<T> Enqueue<T>(Func<T> function)
