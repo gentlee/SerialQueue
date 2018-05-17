@@ -18,7 +18,7 @@ namespace Tests
 
             var list = new List<int>();
             var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 10000);
+            var range = Enumerable.Range(0, 100000);
 
             // Act
 
