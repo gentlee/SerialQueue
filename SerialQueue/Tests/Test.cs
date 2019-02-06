@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using System;
 using Threading;
 using System.Collections.Generic;
@@ -46,10 +46,87 @@ namespace Tests
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.Enqueue(() => list.Add(number)));
+                tasks.Add(queue.EnqueueAction(() => list.Add(number)));
             }
 
             await Task.WhenAll(tasks);
+
+            // Assert
+
+            Assert.True(range.SequenceEqual(list));
+        }
+
+        [Test]
+        public async Task QueueAsyncFunctionAsNormalFunction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            bool success = false;
+
+            // Act
+
+            try
+            {
+                await queue.EnqueueFunction(async () =>
+                {
+                    await Task.Delay(50);
+                });
+                success = true;
+            }
+            catch (Exception)
+            {
+            }
+
+            Assert.False(success);
+        }
+
+        [Test]
+        public async Task QueueAsyncFunction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var list = new List<int>();
+            var tasks = new List<Task>();
+            var range = Enumerable.Range(0, 100);
+
+            // Act
+
+            foreach (var number in range) {
+                tasks.Add(queue.EnqueueAsyncFunction(async () =>
+                {
+                    await Task.Delay(50);
+                    list.Add(number);
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Assert
+
+            Assert.True(range.SequenceEqual(list));
+        }
+
+        [Test]
+        public async Task QueueAsyncFunctionWithResult()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var list = new List<int>();
+            var tasks = new List<Task>();
+            var range = Enumerable.Range(0, 100);
+
+            // Act
+
+            foreach (var number in range) {
+                list.Add(await queue.EnqueueAsyncFunction(async () =>
+                {
+                    await Task.Delay(50);
+                    return number;
+                }));
+            }
 
             // Assert
 
@@ -69,7 +146,7 @@ namespace Tests
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.Enqueue(() => {
+                tasks.Add(queue.EnqueueFunction(() => {
                     list.Add(number);
                     return number;
                 }));
@@ -96,7 +173,7 @@ namespace Tests
             var counter = 0;
             for (int i = 0; i < count; i++) {
                 Task.Run(() => {
-                    queue.Enqueue(() => list.Add(counter++));
+                    queue.EnqueueAction(() => list.Add(counter++));
                 });
             }
 
