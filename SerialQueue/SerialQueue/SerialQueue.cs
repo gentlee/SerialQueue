@@ -8,19 +8,16 @@ namespace Threading
         readonly object _locker = new object();
         WeakReference<Task> _lastTask;
 
-        public Task EnqueueAction(Action action)
+        public Task Enqueue(Action action)
         {
-            return EnqueueFunction<object>(() => {
+            return Enqueue<bool>(() => {
                 action();
-                return null;
+                return true;
             });
         }
 
-        public Task<T> EnqueueFunction<T>(Func<T> function)
+        public Task<T> Enqueue<T>(Func<T> function)
         {
-            if (typeof(T).Equals(typeof(Task)))
-                throw new InvalidOperationException("You provided async function - use EnqueueAsyncFunction for this.");
-
             lock (_locker)
             {
                 Task lastTask = null;
@@ -28,7 +25,7 @@ namespace Threading
 
                 if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
                 {
-                    resultTask = lastTask.ContinueWith(_ => function());
+                    resultTask = lastTask.ContinueWith(_ => function(), TaskContinuationOptions.ExecuteSynchronously);
                 }
                 else
                 {
@@ -40,7 +37,7 @@ namespace Threading
             }
         }
 
-        public Task EnqueueAsyncFunction(Func<Task> function)
+        public Task Enqueue(Func<Task> asyncAction)
         {
             lock (_locker)
             {
@@ -49,11 +46,11 @@ namespace Threading
 
                 if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
                 {
-                    resultTask = lastTask.ContinueWith(async _ => await function.Invoke()).Unwrap();
+                    resultTask = lastTask.ContinueWith(_ => asyncAction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
                 }
                 else
                 {
-                    resultTask = Task.Run(async () => await function.Invoke());
+                    resultTask = Task.Run(asyncAction);
                 }
 
                 _lastTask = new WeakReference<Task>(resultTask);
@@ -61,7 +58,7 @@ namespace Threading
             }
         }
 
-        public Task<T> EnqueueAsyncFunction<T>(Func<Task<T>> function)
+        public Task<T> Enqueue<T>(Func<Task<T>> asyncFunction)
         {
             lock (_locker)
             {
@@ -70,11 +67,11 @@ namespace Threading
 
                 if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
                 {
-                    resultTask = lastTask.ContinueWith(async _ => await function.Invoke()).Unwrap();
+                    resultTask = lastTask.ContinueWith(_ => asyncFunction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
                 }
                 else
                 {
-                    resultTask = Task.Run(async () => await function.Invoke());
+                    resultTask = Task.Run(asyncFunction);
                 }
 
                 _lastTask = new WeakReference<Task>(resultTask);

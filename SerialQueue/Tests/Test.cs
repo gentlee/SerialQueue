@@ -34,7 +34,7 @@ namespace Tests
         }
 
         [Test]
-        public async Task QueueAction()
+        public async Task EnqueueAction()
         {
             // Assign
 
@@ -46,7 +46,7 @@ namespace Tests
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.EnqueueAction(() => list.Add(number)));
+                tasks.Add(queue.Enqueue(() => list.Add(number)));
             }
 
             await Task.WhenAll(tasks);
@@ -57,97 +57,67 @@ namespace Tests
         }
 
         [Test]
-        public async Task QueueAsyncFunctionAsNormalFunction()
+        public async Task EnqueueFunction()
         {
             // Assign
 
             var queue = new SerialQueue();
-            bool success = false;
-
-            // Act
-
-            try
-            {
-                await queue.EnqueueFunction(async () =>
-                {
-                    await Task.Delay(50);
-                });
-                success = true;
-            }
-            catch (Exception)
-            {
-            }
-
-            Assert.False(success);
-        }
-
-        [Test]
-        public async Task QueueAsyncFunction()
-        {
-            // Assign
-
-            var queue = new SerialQueue();
-            var list = new List<int>();
-            var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 100);
-
-            // Act
-
-            foreach (var number in range) {
-                tasks.Add(queue.EnqueueAsyncFunction(async () =>
-                {
-                    await Task.Delay(50);
-                    list.Add(number);
-                }));
-            }
-
-            await Task.WhenAll(tasks);
-
-            // Assert
-
-            Assert.True(range.SequenceEqual(list));
-        }
-
-        [Test]
-        public async Task QueueAsyncFunctionWithResult()
-        {
-            // Assign
-
-            var queue = new SerialQueue();
-            var list = new List<int>();
-            var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 100);
-
-            // Act
-
-            foreach (var number in range) {
-                list.Add(await queue.EnqueueAsyncFunction(async () =>
-                {
-                    await Task.Delay(50);
-                    return number;
-                }));
-            }
-
-            // Assert
-
-            Assert.True(range.SequenceEqual(list));
-        }
-
-        [Test]
-        public async Task QueueFunction()
-        {
-            // Assign
-
-            var queue = new SerialQueue();
-            var list = new List<int>();
             var tasks = new List<Task<int>>();
             var range = Enumerable.Range(0, 10000);
 
             // Act
 
             foreach (var number in range) {
-                tasks.Add(queue.EnqueueFunction(() => {
+                tasks.Add(queue.Enqueue(() => number));
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Assert
+
+            Assert.True(tasks.Select(x => x.Result).SequenceEqual(range));
+        }
+
+        [Test]
+        public async Task EnqueueAsyncAction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var list = new List<int>();
+            var tasks = new List<Task>();
+            var range = Enumerable.Range(0, 5000);
+
+            // Act
+
+            foreach (var number in range) {
+                tasks.Add(queue.Enqueue(async () => {
+                    await Task.Delay(1);
                     list.Add(number);
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Assert
+
+            Assert.True(range.SequenceEqual(list));
+        }
+
+        [Test]
+        public async Task EnqueueAsyncFunction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var tasks = new List<Task<int>>();
+            var range = Enumerable.Range(0, 5000);
+
+            // Act
+
+            foreach (var number in range) {
+                tasks.Add(queue.Enqueue(async () => {
+                    await Task.Delay(1);
                     return number;
                 }));
             }
@@ -156,7 +126,51 @@ namespace Tests
 
             // Assert
 
-            Assert.True(tasks.Select(x => x.Result).SequenceEqual(list));
+            Assert.True(tasks.Select(x => x.Result).SequenceEqual(range));
+        }
+
+        [Test]
+        public async Task EnqueueMixed()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var list = new List<int>();
+            var tasks = new List<Task>();
+            var range = Enumerable.Range(0, 10000);
+
+            // Act
+
+            foreach (var number in range) {
+                if (number % 4 == 0) {
+                    tasks.Add(queue.Enqueue(() => list.Add(number)));
+                }
+                else if (number % 3 == 0) {
+                    tasks.Add(queue.Enqueue(() => {
+                        list.Add(number);
+                        return number;
+                    }));
+                }
+                else if (number % 2 == 0) {
+                    tasks.Add(queue.Enqueue(async () => {
+                        await Task.Delay(1);
+                        list.Add(number);
+                    }));
+                }
+                else {
+                    tasks.Add(queue.Enqueue(async () => {
+                        await Task.Delay(1);
+                        list.Add(number);
+                        return number;
+                    }));
+                }
+            }
+
+            await Task.WhenAll(tasks);
+
+            // Assert
+
+            Assert.True(range.SequenceEqual(list));
         }
 
         [Test]
@@ -173,15 +187,100 @@ namespace Tests
             var counter = 0;
             for (int i = 0; i < count; i++) {
                 Task.Run(() => {
-                    queue.EnqueueAction(() => list.Add(counter++));
+                    queue.Enqueue(() => list.Add(counter++));
                 });
             }
 
-            while (list.Count != count) {};
+            while (list.Count != count) { };
 
             // Assert
 
             Assert.True(list.SequenceEqual(Enumerable.Range(0, count)));
+        }
+
+        [Test]
+        public async Task CatchExceptionFromAction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var exceptionCatched = false;
+
+            // Act
+
+            await queue.Enqueue(() => Thread.Sleep(10));
+            try {
+                await queue.Enqueue(() => throw new Exception("Test"));
+            }
+            catch (Exception e) {
+                if (e.Message == "Test") {
+                    exceptionCatched = true;
+                }
+            }
+
+            // Assert
+
+            Assert.True(exceptionCatched);
+        }
+
+        [Test]
+        public async Task CatchExceptionFromAsyncAction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var exceptionCatched = false;
+
+            // Act
+
+            await queue.Enqueue(() => Thread.Sleep(10));
+            try {
+                await queue.Enqueue(async () => {
+                    await Task.Delay(50);
+                    throw new Exception("Test");
+                });
+            }
+            catch (Exception e) {
+                if (e.Message == "Test") {
+                    exceptionCatched = true;
+                }
+            }
+
+            // Assert
+
+            Assert.True(exceptionCatched);
+        }
+
+
+        [Test]
+        public async Task CatchExceptionFromAsyncFunction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var exceptionCatched = false;
+
+            // Act
+
+            await queue.Enqueue(() => Thread.Sleep(10));
+            try {
+                await queue.Enqueue(asyncFunction: async () => {
+                    await Task.Delay(50);
+                    throw new Exception("Test");
+#pragma warning disable CS0162 // Unreachable code detected
+                    return false;
+#pragma warning restore CS0162 // Unreachable code detected
+                });
+            }
+            catch (Exception e) {
+                if (e.Message == "Test") {
+                    exceptionCatched = true;
+                }
+            }
+
+            // Assert
+
+            Assert.True(exceptionCatched);
         }
     }
 }
