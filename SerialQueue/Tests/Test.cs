@@ -197,6 +197,91 @@ namespace Tests
 
             Assert.True(list.SequenceEqual(Enumerable.Range(0, count)));
         }
+
+        [Test]
+        public async Task CatchExceptionFromAction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var exceptionCatched = false;
+
+            // Act
+
+            await queue.Enqueue(() => Thread.Sleep(10));
+            try {
+                await queue.Enqueue(() => throw new Exception("Test"));
+            }
+            catch (Exception e) {
+                if (e.Message == "Test") {
+                    exceptionCatched = true;
+                }
+            }
+
+            // Assert
+
+            Assert.True(exceptionCatched);
+        }
+
+        [Test]
+        public async Task CatchExceptionFromAsyncAction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var exceptionCatched = false;
+
+            // Act
+
+            await queue.Enqueue(() => Thread.Sleep(10));
+            try {
+                await queue.Enqueue(async () => {
+                    await Task.Delay(50);
+                    throw new Exception("Test");
+                });
+            }
+            catch (Exception e) {
+                if (e.Message == "Test") {
+                    exceptionCatched = true;
+                }
+            }
+
+            // Assert
+
+            Assert.True(exceptionCatched);
+        }
+
+
+        [Test]
+        public async Task CatchExceptionFromAsyncFunction()
+        {
+            // Assign
+
+            var queue = new SerialQueue();
+            var exceptionCatched = false;
+
+            // Act
+
+            await queue.Enqueue(() => Thread.Sleep(10));
+            try {
+                await queue.Enqueue(asyncFunction: async () => {
+                    await Task.Delay(50);
+                    throw new Exception("Test");
+#pragma warning disable CS0162 // Unreachable code detected
+                    return false;
+#pragma warning restore CS0162 // Unreachable code detected
+                });
+            }
+            catch (Exception e) {
+                if (e.Message == "Test") {
+                    exceptionCatched = true;
+                }
+            }
+
+            // Assert
+
+            Assert.True(exceptionCatched);
+        }
     }
 }
 
