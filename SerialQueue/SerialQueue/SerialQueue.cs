@@ -5,12 +5,13 @@ namespace Threading
 {
     public class SerialQueue
     {
-        readonly object _locker = new object();
-        WeakReference<Task> _lastTask;
+        private readonly object _locker = new object();
+        private readonly WeakReference<Task> _lastTask = new WeakReference<Task>(null);
 
         public Task Enqueue(Action action)
         {
-            return Enqueue<bool>(() => {
+            return Enqueue<bool>(() =>
+            {
                 action();
                 return true;
             });
@@ -20,10 +21,8 @@ namespace Threading
         {
             lock (_locker)
             {
-                Task lastTask = null;
-                Task<T> resultTask = null;
-
-                if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
+                Task<T> resultTask;
+                if (_lastTask.TryGetTarget(out Task lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => function(), TaskContinuationOptions.ExecuteSynchronously);
                 }
@@ -32,7 +31,7 @@ namespace Threading
                     resultTask = Task.Run(function);
                 }
 
-                _lastTask = new WeakReference<Task>(resultTask);
+                _lastTask.SetTarget(resultTask);
                 return resultTask;
             }
         }
@@ -41,10 +40,8 @@ namespace Threading
         {
             lock (_locker)
             {
-                Task lastTask = null;
-                Task resultTask = null;
-
-                if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
+                Task resultTask;
+                if (_lastTask.TryGetTarget(out Task lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncAction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
                 }
@@ -53,7 +50,7 @@ namespace Threading
                     resultTask = Task.Run(asyncAction);
                 }
 
-                _lastTask = new WeakReference<Task>(resultTask);
+                _lastTask.SetTarget(resultTask);
                 return resultTask;
             }
         }
@@ -62,10 +59,8 @@ namespace Threading
         {
             lock (_locker)
             {
-                Task lastTask = null;
-                Task<T> resultTask = null;
-
-                if (_lastTask != null && _lastTask.TryGetTarget(out lastTask))
+                Task<T> resultTask;
+                if (_lastTask.TryGetTarget(out var lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncFunction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
                 }
@@ -74,7 +69,7 @@ namespace Threading
                     resultTask = Task.Run(asyncFunction);
                 }
 
-                _lastTask = new WeakReference<Task>(resultTask);
+                _lastTask.SetTarget(resultTask);
                 return resultTask;
             }
         }
