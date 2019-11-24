@@ -5,8 +5,8 @@ namespace Threading
 {
     public class SerialQueue
     {
-        private readonly object _locker = new object();
-        private readonly WeakReference<Task> _lastTask = new WeakReference<Task>(null);
+        readonly object _locker = new object();
+        readonly WeakReference<Task> _lastTask = new WeakReference<Task>(null);
 
         public Task Enqueue(Action action)
         {
@@ -21,8 +21,9 @@ namespace Threading
         {
             lock (_locker)
             {
+                Task lastTask;
                 Task<T> resultTask;
-                if (_lastTask.TryGetTarget(out Task lastTask))
+                if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => function(), TaskContinuationOptions.ExecuteSynchronously);
                 }
@@ -40,8 +41,9 @@ namespace Threading
         {
             lock (_locker)
             {
+                Task lastTask;
                 Task resultTask;
-                if (_lastTask.TryGetTarget(out Task lastTask))
+                if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncAction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
                 }
@@ -59,8 +61,9 @@ namespace Threading
         {
             lock (_locker)
             {
+                Task lastTask;
                 Task<T> resultTask;
-                if (_lastTask.TryGetTarget(out var lastTask))
+                if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncFunction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
                 }
