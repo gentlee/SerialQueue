@@ -17,11 +17,13 @@ Lightweight C# implementation of FIFO serial queues from ObjC, which are often m
     async Task SomeAsyncMethod()
     {
         // C# 5+
+        
         await queue.Enqueue(SyncAction);
         
         var result = await queue.Enqueue(AsyncFunction);
     
         // Old approach
+        
         queue.Enqueue(AsyncFunction).ContinueWith(t => {
             var result = t.Result;
         });
