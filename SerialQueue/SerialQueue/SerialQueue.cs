@@ -23,6 +23,7 @@ namespace Threading
             {
                 Task lastTask;
                 Task<T> resultTask;
+                
                 if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => function(), TaskContinuationOptions.ExecuteSynchronously);
@@ -33,6 +34,7 @@ namespace Threading
                 }
 
                 _lastTask.SetTarget(resultTask);
+                
                 return resultTask;
             }
         }
@@ -43,6 +45,7 @@ namespace Threading
             {
                 Task lastTask;
                 Task resultTask;
+                
                 if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncAction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
@@ -53,6 +56,7 @@ namespace Threading
                 }
 
                 _lastTask.SetTarget(resultTask);
+                
                 return resultTask;
             }
         }
@@ -63,6 +67,7 @@ namespace Threading
             {
                 Task lastTask;
                 Task<T> resultTask;
+                
                 if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncFunction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
@@ -73,6 +78,7 @@ namespace Threading
                 }
 
                 _lastTask.SetTarget(resultTask);
+                
                 return resultTask;
             }
         }
