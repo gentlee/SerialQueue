@@ -1,5 +1,5 @@
 # SerialQueue
-Lightweight C# implementation of FIFO serial queues from ObjC, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
+Lightweight C# Task-based implementation of FIFO serial queues from ObjC, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
 
 ### Interface
 
