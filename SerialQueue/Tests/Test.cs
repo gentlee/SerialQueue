@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using Threading;
 using System.Collections.Generic;
@@ -8,10 +8,10 @@ using System.Threading;
 
 namespace Tests
 {
-    [TestFixture()]
+    [TestClass]
     public class Test
     {
-        [Test]
+        [TestMethod]
         public async Task TplIsNotFifo()
         {
             // Assign
@@ -22,7 +22,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(Task.Factory.StartNew(() => list.Add(number), TaskCreationOptions.PreferFairness));
             }
 
@@ -30,10 +31,10 @@ namespace Tests
 
             // Assert
 
-            Assert.False(range.SequenceEqual(list));
+            Assert.IsFalse(range.SequenceEqual(list));
         }
 
-        [Test]
+        [TestMethod]
         public async Task EnqueueAction()
         {
             // Assign
@@ -45,7 +46,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(() => list.Add(number)));
             }
 
@@ -53,10 +55,10 @@ namespace Tests
 
             // Assert
 
-            Assert.True(range.SequenceEqual(list));
+            Assert.IsTrue(range.SequenceEqual(list));
         }
 
-        [Test]
+        [TestMethod]
         public async Task EnqueueFunction()
         {
             // Assign
@@ -67,7 +69,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(() => number));
             }
 
@@ -75,10 +78,10 @@ namespace Tests
 
             // Assert
 
-            Assert.True(tasks.Select(x => x.Result).SequenceEqual(range));
+            Assert.IsTrue(tasks.Select(x => x.Result).SequenceEqual(range));
         }
 
-        [Test]
+        [TestMethod]
         public async Task EnqueueAsyncAction()
         {
             // Assign
@@ -90,7 +93,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(async () => {
                     await Task.Delay(1);
                     list.Add(number);
@@ -101,10 +105,10 @@ namespace Tests
 
             // Assert
 
-            Assert.True(range.SequenceEqual(list));
+            Assert.IsTrue(range.SequenceEqual(list));
         }
 
-        [Test]
+        [TestMethod]
         public async Task EnqueueAsyncFunction()
         {
             // Assign
@@ -115,7 +119,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(async () => {
                     await Task.Delay(1);
                     return number;
@@ -126,10 +131,10 @@ namespace Tests
 
             // Assert
 
-            Assert.True(tasks.Select(x => x.Result).SequenceEqual(range));
+            Assert.IsTrue(tasks.Select(x => x.Result).SequenceEqual(range));
         }
 
-        [Test]
+        [TestMethod]
         public async Task EnqueueMixed()
         {
             // Assign
@@ -141,23 +146,28 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
-                if (number % 4 == 0) {
+            foreach (var number in range)
+            {
+                if (number % 4 == 0)
+                {
                     tasks.Add(queue.Enqueue(() => list.Add(number)));
                 }
-                else if (number % 3 == 0) {
+                else if (number % 3 == 0)
+                {
                     tasks.Add(queue.Enqueue(() => {
                         list.Add(number);
                         return number;
                     }));
                 }
-                else if (number % 2 == 0) {
+                else if (number % 2 == 0)
+                {
                     tasks.Add(queue.Enqueue(async () => {
                         await Task.Delay(1);
                         list.Add(number);
                     }));
                 }
-                else {
+                else
+                {
                     tasks.Add(queue.Enqueue(async () => {
                         await Task.Delay(1);
                         list.Add(number);
@@ -170,10 +180,10 @@ namespace Tests
 
             // Assert
 
-            Assert.True(range.SequenceEqual(list));
+            Assert.IsTrue(range.SequenceEqual(list));
         }
 
-        [Test]
+        [TestMethod]
         public void EnqueueFromMultipleThreads()
         {
             // Assign
@@ -185,7 +195,8 @@ namespace Tests
             // Act
 
             var counter = 0;
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < count; i++)
+            {
                 Task.Run(() => {
                     queue.Enqueue(() => list.Add(counter++));
                 });
@@ -195,10 +206,10 @@ namespace Tests
 
             // Assert
 
-            Assert.True(list.SequenceEqual(Enumerable.Range(0, count)));
+            Assert.IsTrue(list.SequenceEqual(Enumerable.Range(0, count)));
         }
 
-        [Test]
+        [TestMethod]
         public async Task CatchExceptionFromAction()
         {
             // Assign
@@ -209,21 +220,24 @@ namespace Tests
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
-            try {
+            try
+            {
                 await queue.Enqueue(() => throw new Exception("Test"));
             }
-            catch (Exception e) {
-                if (e.Message == "Test") {
+            catch (Exception e)
+            {
+                if (e.Message == "Test")
+                {
                     exceptionCatched = true;
                 }
             }
 
             // Assert
 
-            Assert.True(exceptionCatched);
+            Assert.IsTrue(exceptionCatched);
         }
 
-        [Test]
+        [TestMethod]
         public async Task CatchExceptionFromAsyncAction()
         {
             // Assign
@@ -234,25 +248,28 @@ namespace Tests
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
-            try {
+            try
+            {
                 await queue.Enqueue(async () => {
                     await Task.Delay(50);
                     throw new Exception("Test");
                 });
             }
-            catch (Exception e) {
-                if (e.Message == "Test") {
+            catch (Exception e)
+            {
+                if (e.Message == "Test")
+                {
                     exceptionCatched = true;
                 }
             }
 
             // Assert
 
-            Assert.True(exceptionCatched);
+            Assert.IsTrue(exceptionCatched);
         }
 
 
-        [Test]
+        [TestMethod]
         public async Task CatchExceptionFromAsyncFunction()
         {
             // Assign
@@ -263,7 +280,8 @@ namespace Tests
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
-            try {
+            try
+            {
                 await queue.Enqueue(asyncFunction: async () => {
                     await Task.Delay(50);
                     throw new Exception("Test");
@@ -272,16 +290,17 @@ namespace Tests
 #pragma warning restore CS0162 // Unreachable code detected
                 });
             }
-            catch (Exception e) {
-                if (e.Message == "Test") {
+            catch (Exception e)
+            {
+                if (e.Message == "Test")
+                {
                     exceptionCatched = true;
                 }
             }
 
             // Assert
 
-            Assert.True(exceptionCatched);
+            Assert.IsTrue(exceptionCatched);
         }
     }
 }
-
