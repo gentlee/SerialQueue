@@ -20,13 +20,13 @@ readonly SerialQueue queue = new SerialQueue();
 async Task SomeAsyncMethod()
 {
     // C# 5+
-        
+    
     await queue.Enqueue(SyncAction);
-        
+    
     var result = await queue.Enqueue(AsyncFunction);
     
     // Old approach
-        
+    
     queue.Enqueue(AsyncFunction).ContinueWith(t => {
         var result = t.Result;
     });
