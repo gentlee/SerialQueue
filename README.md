@@ -32,3 +32,77 @@ async Task SomeAsyncMethod()
     });
 }
 ```
+
+### Troubleshooting
+
+#### Deadlocks
+
+Nesting and awaiting `queue.Enqueue` leads to deadlock in the queue:
+
+```C#
+var queue = new SerialQueue();
+
+await queue.Enqueue(async () =>
+{
+  await queue.Enqueue(async () =>
+  {
+    // This code will never run because it waits until the first task executes,
+    // and first task awaits while this one finishes.
+    // Queue is locked.
+  });
+});
+```
+This particular case can be fixed by either not awaiting nested Enqueue or not putting nested task to queue at all, because it is already in the queue.
+
+But it is much better to implement code not synced first, but later sync it in the upper layer that uses that code:
+
+```C#
+// Bad
+
+async Task Test()
+{
+  await FunctionA();
+  await FunctionB();
+  await FunctionC(); // deadlock
+}
+
+async Task FunctionA() => await queue.Enqueue(async () =>
+  // job A
+});
+async Task FunctionB() => await queue.Enqueue(async () =>
+  // job B
+});
+async Task FunctionC() => await queue.Enqueue(async () =>
+  await FunctionA();
+  // job C
+  await FunctionB();
+});
+
+// Good
+
+async Task Test()
+{
+    await queue.Enqueue(() => {
+      await FunctionA();
+      await FunctionB();
+      await FunctionC();
+    });
+}
+
+async Task FunctionA()
+{
+  // job A
+};
+
+async Task FunctionB()
+{
+  // job B
+};
+
+async Task FunctionC()
+{
+  await FunctionA();
+  // job C
+  await FunctionB();
+};
+```
