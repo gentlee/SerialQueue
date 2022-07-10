@@ -69,9 +69,11 @@ async Task Test()
 async Task FunctionA() => await queue.Enqueue(async () =>
   // job A
 });
+
 async Task FunctionB() => await queue.Enqueue(async () =>
   // job B
 });
+
 async Task FunctionC() => await queue.Enqueue(async () =>
   await FunctionA();
   // job C
