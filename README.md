@@ -59,50 +59,40 @@ But it is better to implement code not synced first, but later sync it in the up
 ```C#
 // Bad
 
-async Task Test()
+async Task Run()
 {
   await FunctionA();
   await FunctionB();
   await FunctionC(); // deadlock
 }
 
-async Task FunctionA() => await queue.Enqueue(async () =>
-  // job A
-});
+async Task FunctionA() => await queue.Enqueue(async () => { ... });
 
-async Task FunctionB() => await queue.Enqueue(async () =>
-  // job B
-});
+async Task FunctionB() => await queue.Enqueue(async () => { ... });
 
 async Task FunctionC() => await queue.Enqueue(async () =>
   await FunctionA();
-  // job C
+  ...
   await FunctionB();
 });
 
 // Good
 
-async Task Test()
+async Task Run()
 {
     await queue.Enqueue(FunctionA);
     await queue.Enqueue(FunctionB);
     await queue.Enqueue(FunctionC);
 }
 
-async Task FunctionA()
-{
-  // job A
-};
+async Task FunctionA() { ... };
 
-async Task FunctionB()
-{
-  // job B
-};
+async Task FunctionB() { ... };
 
 async Task FunctionC()
 {
   await FunctionA();
-  // job C
+  ...
   await FunctionB();
 };
 ```
