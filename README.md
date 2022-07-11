@@ -54,7 +54,7 @@ await queue.Enqueue(async () =>
 ```
 This particular case can be fixed by either not awaiting nested Enqueue or not putting nested task to queue at all, because it is already in the queue.
 
-Overall it is better to implement code not synced first, but later sync it in the upper layer that uses that code:
+Overall it is better to implement code not synced first, but later sync it in the upper layer that uses that code, or in a synced wrapper:
 
 ```C#
 // Bad
