@@ -7,10 +7,10 @@ Covered with tests.
 
 ```C#
 class SerialQueue {
-    Task Enqueue(Action action)
-    Task<T> Enqueue<T>(Func<T> function)
-    Task Enqueue(Func<Task> asyncAction)
-    Task<T> Enqueue<T>(Func<Task<T>> asyncFunction)
+    Task Enqueue(Action action);
+    Task<T> Enqueue<T>(Func<T> function);
+    Task Enqueue(Func<Task> asyncAction);
+    Task<T> Enqueue<T>(Func<Task<T>> asyncFunction);
 }
 ```
     
