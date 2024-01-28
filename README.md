@@ -13,6 +13,10 @@ class SerialQueue {
     Task<T> Enqueue<T>(Func<Task<T>> asyncFunction);
 }
 ```
+
+## Installation
+
+Just copy the source code of `SerialQueue/SerialQueue.cs` file to your project.
     
 ### Example
 
