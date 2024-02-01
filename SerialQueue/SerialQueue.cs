@@ -1,16 +1,13 @@
-using System;
-using System.Threading.Tasks;
-
-namespace Threading
+﻿namespace Threading
 {
     public class SerialQueue
     {
         readonly object _locker = new object();
-        readonly WeakReference<Task> _lastTask = new WeakReference<Task>(null);
+        readonly WeakReference<Task?> _lastTask = new(null);
 
         public Task Enqueue(Action action)
         {
-            return Enqueue<bool>(() =>
+            return Enqueue(() =>
             {
                 action();
                 return true;
@@ -21,9 +18,9 @@ namespace Threading
         {
             lock (_locker)
             {
-                Task lastTask;
+                Task? lastTask;
                 Task<T> resultTask;
-                
+
                 if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => function(), TaskContinuationOptions.ExecuteSynchronously);
@@ -34,7 +31,7 @@ namespace Threading
                 }
 
                 _lastTask.SetTarget(resultTask);
-                
+
                 return resultTask;
             }
         }
@@ -43,9 +40,9 @@ namespace Threading
         {
             lock (_locker)
             {
-                Task lastTask;
+                Task? lastTask;
                 Task resultTask;
-                
+
                 if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncAction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
@@ -56,7 +53,7 @@ namespace Threading
                 }
 
                 _lastTask.SetTarget(resultTask);
-                
+
                 return resultTask;
             }
         }
@@ -65,9 +62,9 @@ namespace Threading
         {
             lock (_locker)
             {
-                Task lastTask;
+                Task? lastTask;
                 Task<T> resultTask;
-                
+
                 if (_lastTask.TryGetTarget(out lastTask))
                 {
                     resultTask = lastTask.ContinueWith(_ => asyncFunction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
@@ -78,7 +75,7 @@ namespace Threading
                 }
 
                 _lastTask.SetTarget(resultTask);
-                
+
                 return resultTask;
             }
         }

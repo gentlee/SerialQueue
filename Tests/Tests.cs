@@ -1,14 +1,8 @@
-using NUnit.Framework;
-using System;
-using Threading;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
+﻿using Threading;
 
 namespace Tests
 {
-    [TestFixture()]
+    [TestFixture]
     public class Test
     {
         [Test]
@@ -22,7 +16,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(Task.Factory.StartNew(() => list.Add(number), TaskCreationOptions.PreferFairness));
             }
 
@@ -45,7 +40,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(() => list.Add(number)));
             }
 
@@ -67,7 +63,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(() => number));
             }
 
@@ -90,7 +87,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(async () => {
                     await Task.Delay(1);
                     list.Add(number);
@@ -115,7 +113,8 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
+            foreach (var number in range)
+            {
                 tasks.Add(queue.Enqueue(async () => {
                     await Task.Delay(1);
                     return number;
@@ -141,23 +140,28 @@ namespace Tests
 
             // Act
 
-            foreach (var number in range) {
-                if (number % 4 == 0) {
+            foreach (var number in range)
+            {
+                if (number % 4 == 0)
+                {
                     tasks.Add(queue.Enqueue(() => list.Add(number)));
                 }
-                else if (number % 3 == 0) {
+                else if (number % 3 == 0)
+                {
                     tasks.Add(queue.Enqueue(() => {
                         list.Add(number);
                         return number;
                     }));
                 }
-                else if (number % 2 == 0) {
+                else if (number % 2 == 0)
+                {
                     tasks.Add(queue.Enqueue(async () => {
                         await Task.Delay(1);
                         list.Add(number);
                     }));
                 }
-                else {
+                else
+                {
                     tasks.Add(queue.Enqueue(async () => {
                         await Task.Delay(1);
                         list.Add(number);
@@ -185,7 +189,8 @@ namespace Tests
             // Act
 
             var counter = 0;
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < count; i++)
+            {
                 Task.Run(() => {
                     queue.Enqueue(() => list.Add(counter++));
                 });
@@ -209,11 +214,14 @@ namespace Tests
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
-            try {
+            try
+            {
                 await queue.Enqueue(() => throw new Exception("Test"));
             }
-            catch (Exception e) {
-                if (e.Message == "Test") {
+            catch (Exception e)
+            {
+                if (e.Message == "Test")
+                {
                     exceptionCatched = true;
                 }
             }
@@ -234,14 +242,17 @@ namespace Tests
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
-            try {
+            try
+            {
                 await queue.Enqueue(async () => {
                     await Task.Delay(50);
                     throw new Exception("Test");
                 });
             }
-            catch (Exception e) {
-                if (e.Message == "Test") {
+            catch (Exception e)
+            {
+                if (e.Message == "Test")
+                {
                     exceptionCatched = true;
                 }
             }
@@ -263,7 +274,8 @@ namespace Tests
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
-            try {
+            try
+            {
                 await queue.Enqueue(asyncFunction: async () => {
                     await Task.Delay(50);
                     throw new Exception("Test");
@@ -272,8 +284,10 @@ namespace Tests
 #pragma warning restore CS0162 // Unreachable code detected
                 });
             }
-            catch (Exception e) {
-                if (e.Message == "Test") {
+            catch (Exception e)
+            {
+                if (e.Message == "Test")
+                {
                     exceptionCatched = true;
                 }
             }
