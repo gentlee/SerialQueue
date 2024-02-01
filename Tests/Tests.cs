@@ -89,7 +89,8 @@ namespace Tests
 
             foreach (var number in range)
             {
-                tasks.Add(queue.Enqueue(async () => {
+                tasks.Add(queue.Enqueue(async () =>
+                {
                     await Task.Delay(1);
                     list.Add(number);
                 }));
@@ -115,7 +116,8 @@ namespace Tests
 
             foreach (var number in range)
             {
-                tasks.Add(queue.Enqueue(async () => {
+                tasks.Add(queue.Enqueue(async () =>
+                {
                     await Task.Delay(1);
                     return number;
                 }));
@@ -148,21 +150,24 @@ namespace Tests
                 }
                 else if (number % 3 == 0)
                 {
-                    tasks.Add(queue.Enqueue(() => {
+                    tasks.Add(queue.Enqueue(() =>
+                    {
                         list.Add(number);
                         return number;
                     }));
                 }
                 else if (number % 2 == 0)
                 {
-                    tasks.Add(queue.Enqueue(async () => {
+                    tasks.Add(queue.Enqueue(async () =>
+                    {
                         await Task.Delay(1);
                         list.Add(number);
                     }));
                 }
                 else
                 {
-                    tasks.Add(queue.Enqueue(async () => {
+                    tasks.Add(queue.Enqueue(async () =>
+                    {
                         await Task.Delay(1);
                         list.Add(number);
                         return number;
@@ -191,7 +196,8 @@ namespace Tests
             var counter = 0;
             for (int i = 0; i < count; i++)
             {
-                Task.Run(() => {
+                Task.Run(() =>
+                {
                     queue.Enqueue(() => list.Add(counter++));
                 });
             }
@@ -244,7 +250,8 @@ namespace Tests
             await queue.Enqueue(() => Thread.Sleep(10));
             try
             {
-                await queue.Enqueue(async () => {
+                await queue.Enqueue(async () =>
+                {
                     await Task.Delay(50);
                     throw new Exception("Test");
                 });
@@ -276,7 +283,8 @@ namespace Tests
             await queue.Enqueue(() => Thread.Sleep(10));
             try
             {
-                await queue.Enqueue(asyncFunction: async () => {
+                await queue.Enqueue(asyncFunction: async () =>
+                {
                     await Task.Delay(50);
                     throw new Exception("Test");
 #pragma warning disable CS0162 // Unreachable code detected
