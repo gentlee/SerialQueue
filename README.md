@@ -14,7 +14,7 @@ class SerialQueue {
 }
 ```
 
-## Installation
+### Installation
 
 Just copy the source code of `SerialQueue/SerialQueue.cs` file to your project.
     
