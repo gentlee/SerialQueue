@@ -3,16 +3,17 @@
 namespace Tests
 {
     [TestFixture]
-    public class Test
+    public class SerialQueueTests
     {
         [Test]
         public async Task TplIsNotFifo()
         {
             // Assign
 
+            const int count = 1000000;
             var list = new List<int>();
-            var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 100000);
+            var tasks = new List<Task>(count);
+            var range = Enumerable.Range(0, count);
 
             // Act
 
@@ -33,10 +34,11 @@ namespace Tests
         {
             // Assign
 
+            const int count = 100000;
             var queue = new SerialQueue();
             var list = new List<int>();
-            var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 10000);
+            var tasks = new List<Task>(count);
+            var range = Enumerable.Range(0, count);
 
             // Act
 
@@ -57,9 +59,10 @@ namespace Tests
         {
             // Assign
 
+            const int count = 100000;
             var queue = new SerialQueue();
-            var tasks = new List<Task<int>>();
-            var range = Enumerable.Range(0, 10000);
+            var tasks = new List<Task<int>>(count);
+            var range = Enumerable.Range(0, count);
 
             // Act
 
@@ -80,10 +83,11 @@ namespace Tests
         {
             // Assign
 
+            const int count = 10000;
             var queue = new SerialQueue();
             var list = new List<int>();
-            var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 5000);
+            var tasks = new List<Task>(count);
+            var range = Enumerable.Range(0, count);
 
             // Act
 
@@ -91,7 +95,7 @@ namespace Tests
             {
                 tasks.Add(queue.Enqueue(async () =>
                 {
-                    await Task.Delay(1);
+                    await TestUtils.RandomDelay();
                     list.Add(number);
                 }));
             }
@@ -108,9 +112,10 @@ namespace Tests
         {
             // Assign
 
+            const int count = 10000;
             var queue = new SerialQueue();
-            var tasks = new List<Task<int>>();
-            var range = Enumerable.Range(0, 5000);
+            var tasks = new List<Task<int>>(count);
+            var range = Enumerable.Range(0, count);
 
             // Act
 
@@ -118,7 +123,7 @@ namespace Tests
             {
                 tasks.Add(queue.Enqueue(async () =>
                 {
-                    await Task.Delay(1);
+                    await TestUtils.RandomDelay();
                     return number;
                 }));
             }
@@ -135,32 +140,36 @@ namespace Tests
         {
             // Assign
 
+            const int count = 10000;
             var queue = new SerialQueue();
             var list = new List<int>();
-            var tasks = new List<Task>();
-            var range = Enumerable.Range(0, 10000);
+            var tasks = new List<Task>(count);
+            var range = Enumerable.Range(0, count);
 
             // Act
 
             foreach (var number in range)
             {
-                if (number % 4 == 0)
+                var index = number % 2;
+                if (index == 0)
                 {
+                    await TestUtils.RandomDelay();
                     tasks.Add(queue.Enqueue(() => list.Add(number)));
                 }
-                else if (number % 3 == 0)
+                else if (index == 1)
                 {
+                    await TestUtils.RandomDelay();
                     tasks.Add(queue.Enqueue(() =>
                     {
                         list.Add(number);
                         return number;
                     }));
                 }
-                else if (number % 2 == 0)
+                else if (index == 2)
                 {
                     tasks.Add(queue.Enqueue(async () =>
                     {
-                        await Task.Delay(1);
+                        await TestUtils.RandomDelay();
                         list.Add(number);
                     }));
                 }
@@ -168,7 +177,7 @@ namespace Tests
                 {
                     tasks.Add(queue.Enqueue(async () =>
                     {
-                        await Task.Delay(1);
+                        await TestUtils.RandomDelay();
                         list.Add(number);
                         return number;
                     }));
@@ -183,26 +192,31 @@ namespace Tests
         }
 
         [Test]
-        public void EnqueueFromMultipleThreads()
+        public async Task EnqueueFromMultipleThreads()
         {
             // Assign
 
             const int count = 10000;
             var queue = new SerialQueue();
             var list = new List<int>();
+            var tasks = new List<Task>(count);
 
             // Act
 
             var counter = 0;
             for (int i = 0; i < count; i++)
             {
-                Task.Run(() =>
+                tasks.Add(Task.Run(async () =>
                 {
-                    queue.Enqueue(() => list.Add(counter++));
-                });
+                    await queue.Enqueue(async () => {
+                        var index = counter++;
+                        await TestUtils.RandomDelay();
+                        list.Add(index);
+                    });
+                }));
             }
 
-            while (list.Count != count) { };
+            await Task.WhenAll(tasks);
 
             // Assert
 
