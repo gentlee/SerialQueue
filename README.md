@@ -1,26 +1,36 @@
 # SerialQueue
-Lightweight C# Task-based implementation of FIFO serial queues from Apple's GCD, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
+Lightweight C# Task-based and callback-based implementations of FIFO serial queues from Apple's GCD, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
+
+Callback-based implementation is slightly faster, while Task-based is more simple and convenient.
 
 Covered with tests.
 
 ### Interface
 
 ```C#
+// Task based
 class SerialQueue {
     Task Enqueue(Action action);
     Task<T> Enqueue<T>(Func<T> function);
     Task Enqueue(Func<Task> asyncAction);
     Task<T> Enqueue<T>(Func<Task<T>> asyncFunction);
 }
+
+// Callback based
+class SerialQueueCallbacks {
+  void DispatchSync(Action action);
+  void DispatchAsync(Action action);
+}
 ```
 
 ### Installation
 
-Just copy the source code of `SerialQueue/SerialQueue.cs` file to your project.
+Just copy the source code of `SerialQueue/SerialQueue.cs` or `SerialQueue/SerialQueueCallbacks.cs` file to your project.
     
 ### Example
 
 ```C#
+// Task based
 readonly SerialQueue queue = new SerialQueue();
 
 async Task SomeAsyncMethod()
