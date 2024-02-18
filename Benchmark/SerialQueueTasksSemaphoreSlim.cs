@@ -1,6 +1,6 @@
 ﻿namespace Threading
 {
-    public class SerialQueueSemaphoreSlim
+    public class SerialQueueTasksSemaphoreSlim
     {
         SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 

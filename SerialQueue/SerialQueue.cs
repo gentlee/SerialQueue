@@ -2,82 +2,92 @@
 {
     public class SerialQueue
     {
-        readonly object _locker = new object();
-        readonly WeakReference<Task?> _lastTask = new(null);
-
-        public Task Enqueue(Action action)
+        class LinkedListNode
         {
-            return Enqueue(() =>
+            public readonly Action Action;
+            public LinkedListNode? Next;
+
+            public LinkedListNode(Action action)
+            {
+                Action = action;
+            }
+        }
+
+        public event Action<Action, Exception> UnhandledException = delegate { };
+
+        private LinkedListNode? _queueFirst;
+        private LinkedListNode? _queueLast;
+        private bool _isRunning = false;
+
+        public void DispatchSync(Action action)
+        {
+            var mre = new ManualResetEvent(false);
+            DispatchAsync(() =>
             {
                 action();
-                return true;
+                mre.Set();
             });
+            mre.WaitOne();
         }
 
-        public Task<T> Enqueue<T>(Func<T> function)
+        public void DispatchAsync(Action action)
         {
-            lock (_locker)
-            {
-                Task? lastTask;
-                Task<T> resultTask;
+            var newNode = new LinkedListNode(action);
 
-                if (_lastTask.TryGetTarget(out lastTask))
+            lock (this)
+            {
+                if (_queueFirst == null)
                 {
-                    resultTask = lastTask.ContinueWith(_ => function(), TaskContinuationOptions.ExecuteSynchronously);
+                    _queueFirst = newNode;
+                    _queueLast = newNode;
+
+                    if (!_isRunning)
+                    {
+                        _isRunning = true;
+                        ThreadPool.QueueUserWorkItem(Run);
+                    }
                 }
                 else
                 {
-                    resultTask = Task.Run(function);
+                    _queueLast!.Next = newNode;
+                    _queueLast = newNode;
                 }
-
-                _lastTask.SetTarget(resultTask);
-
-                return resultTask;
             }
         }
 
-        public Task Enqueue(Func<Task> asyncAction)
+        private void Run(object? _)
         {
-            lock (_locker)
+            while (true)
             {
-                Task? lastTask;
-                Task resultTask;
+                LinkedListNode? firstNode;
 
-                if (_lastTask.TryGetTarget(out lastTask))
+                lock (this)
                 {
-                    resultTask = lastTask.ContinueWith(_ => asyncAction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
-                }
-                else
-                {
-                    resultTask = Task.Run(asyncAction);
-                }
-
-                _lastTask.SetTarget(resultTask);
-
-                return resultTask;
-            }
-        }
-
-        public Task<T> Enqueue<T>(Func<Task<T>> asyncFunction)
-        {
-            lock (_locker)
-            {
-                Task? lastTask;
-                Task<T> resultTask;
-
-                if (_lastTask.TryGetTarget(out lastTask))
-                {
-                    resultTask = lastTask.ContinueWith(_ => asyncFunction(), TaskContinuationOptions.ExecuteSynchronously).Unwrap();
-                }
-                else
-                {
-                    resultTask = Task.Run(asyncFunction);
+                    if (_queueFirst == null)
+                    {
+                        _isRunning = false;
+                        return;
+                    }
+                    firstNode = _queueFirst;
+                    _queueFirst = null;
+                    _queueLast = null;
                 }
 
-                _lastTask.SetTarget(resultTask);
-
-                return resultTask;
+                while (firstNode != null)
+                {
+                    var action = firstNode.Action;
+                    firstNode = firstNode.Next;
+                    try
+                    {
+                        action();
+                    }
+                    catch (Exception error)
+                    {
+                        UnhandledException.Invoke(action, error);
+                    }
+                }
             }
         }
     }
 }
+

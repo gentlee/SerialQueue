@@ -5,22 +5,29 @@ using Threading;
 const string NO_SYNC_LABEL = "no-sync(duration)";
 const char DELIMITER = ';';
 const int WARMUP_ITERATIONS = 200;
+const int DEFAULT_ITERATIONS = 100_000;
 
 int[] workDurationsNs = { 100, 200, 300, 400, 500, 1000, 5000, 10_000, 50_000, 100_000, 500_000, 1000_000, 5_000_000, 10_000_000 };
+var workIterationsPerDuration = new Dictionary<int, int> {
+    { 10_000_000, 2000 },
+    { 5_000_000, 4000 },
+    { 1_000_000, 10_000 },
+    { 500_000, 20_000 }
+};
 var stopwatch = new Stopwatch();
 var workStopwatch = new Stopwatch();
 var enLocale = new CultureInfo("en-En");
-var benchmarks = new Dictionary<string, Func<int, int, Task>>
-{
+var benchmarks = new Dictionary<string, Func<int, int, Task>> {
     { NO_SYNC_LABEL, noSync },
     { "spinlock", spinLock },
     { "monitor", monitor },
     { "mutex", mutex },
+    { "serial-queue-tasks-spinlock", serialQueueTasksSpinLock },
+    { "serial-queue-tasks-monitor", serialQueueTasksMonitor },
+    { "serial-queue-tasks-semaphoreslim", serialQueueTasksSemaphoreSlim },
+    { "serial-queue-borland", serialQueueBorland },
     { "serial-queue-spinlock", serialQueueSpinLock },
     { "serial-queue-monitor", serialQueueMonitor },
-    { "serial-queue-semaphoreslim", serialQueueSemaphoreSlim },
-    { "serial-queue-callbacks", serialQueueCallbacks },
-    { "serial-queue-callbacks-borland", serialQueueCallbacksBorland },
 };
 
 // log headers
@@ -32,7 +39,7 @@ Console.WriteLine("ms{0}{1}", DELIMITER, string.Join(DELIMITER, benchmarks.Keys)
 foreach (var workDurationNs in workDurationsNs)
 {
     var results = new List<float>(benchmarks.Count + 2) { workDurationNs / 1000.0f };
-    int workIterations = Math.Max(100_000_000 / workDurationNs, 2_000);
+    int workIterations = workIterationsPerDuration.GetValueOrDefault(workDurationNs, DEFAULT_ITERATIONS);
     float noSyncWorkDurationTicks = 0; // later taken from no-sync benchmark
 
     // run benchmarks
@@ -136,7 +143,7 @@ Task monitor(int workIterations, int workNs)
 
 Task spinLock(int workIterations, int workNs)
 {
-    var spinLock = new System.Threading.SpinLock();
+    var spinLock = new SpinLock(false);
     return ParallelFor(workIterations, (callback) =>
     {
         bool gotLock = false;
@@ -148,7 +155,7 @@ Task spinLock(int workIterations, int workNs)
         }
         finally
         {
-            if (gotLock) spinLock.Exit(); ;
+            if (gotLock) spinLock.Exit(false);
         }
     });
 }
@@ -171,48 +178,48 @@ Task mutex(int workIterations, int workNs)
     });
 }
 
+Task serialQueueTasksMonitor(int workIterations, int workNs)
+{
+    var serialQueue = new SerialQueueTasksMonitor();
+    return ParallelFor(workIterations, (callback) =>
+    {
+        serialQueue.Enqueue(() =>
+        {
+            work(workNs);
+            callback();
+        });
+    });
+}
+
+Task serialQueueTasksSpinLock(int workIterations, int workNs)
+{
+    var serialQueue = new SerialQueueTasksSpinLock();
+    return ParallelFor(workIterations, (callback) =>
+    {
+        serialQueue.Enqueue(() =>
+        {
+            work(workNs);
+            callback();
+        });
+    });
+}
+
+Task serialQueueTasksSemaphoreSlim(int workIterations, int workNs)
+{
+    var serialQueue = new SerialQueueTasksSemaphoreSlim();
+    return ParallelFor(workIterations, (callback) =>
+    {
+        serialQueue.Enqueue(() =>
+        {
+            work(workNs);
+            callback();
+        });
+    });
+}
+
 Task serialQueueMonitor(int workIterations, int workNs)
 {
     var serialQueue = new SerialQueueMonitor();
-    return ParallelFor(workIterations, (callback) =>
-    {
-        serialQueue.Enqueue(() =>
-        {
-            work(workNs);
-            callback();
-        });
-    });
-}
-
-Task serialQueueSpinLock(int workIterations, int workNs)
-{
-    var serialQueue = new SerialQueueSpinLock();
-    return ParallelFor(workIterations, (callback) =>
-    {
-        serialQueue.Enqueue(() =>
-        {
-            work(workNs);
-            callback();
-        });
-    });
-}
-
-Task serialQueueSemaphoreSlim(int workIterations, int workNs)
-{
-    var serialQueue = new SerialQueueSemaphoreSlim();
-    return ParallelFor(workIterations, (callback) =>
-    {
-        serialQueue.Enqueue(() =>
-        {
-            work(workNs);
-            callback();
-        });
-    });
-}
-
-Task serialQueueCallbacks(int workIterations, int workNs)
-{
-    var serialQueue = new SerialQueueCallbacks();
     return ParallelFor(workIterations, (callback) =>
     {
         serialQueue.DispatchAsync(() =>
@@ -223,7 +230,20 @@ Task serialQueueCallbacks(int workIterations, int workNs)
     });
 }
 
-Task serialQueueCallbacksBorland(int workIterations, int workNs)
+Task serialQueueSpinLock(int workIterations, int workNs)
+{
+    var serialQueue = new SerialQueueSpinlock();
+    return ParallelFor(workIterations, (callback) =>
+    {
+        serialQueue.DispatchAsync(() =>
+        {
+            work(workNs);
+            callback();
+        });
+    });
+}
+
+Task serialQueueBorland(int workIterations, int workNs)
 {
     var serialQueue = new Dispatch.SerialQueue();
     return ParallelFor(workIterations, (callback) =>

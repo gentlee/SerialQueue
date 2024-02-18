@@ -5,7 +5,7 @@ namespace Threading
 {
     // THIS CLASS DOESN'T PASS TESTS AND IS NOT FIFO
 
-    public class SerialQueueTplDataflow
+    public class SerialQueueTasksTplDataflow
     {
         ActionBlock<object> _actionBlock = new ActionBlock<object>(async action =>
         {
