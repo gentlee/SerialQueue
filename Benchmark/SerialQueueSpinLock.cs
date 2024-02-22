@@ -31,17 +31,6 @@
             mre.WaitOne();
         }
 
-        public Task DispatchTaskAsync(Action action)
-        {
-            var tcs = new TaskCompletionSource();
-            DispatchAsync(() =>
-            {
-                action();
-                tcs.SetResult();
-            });
-            return tcs.Task;
-        }
-
         public void DispatchAsync(Action action)
         {
             var newNode = new LinkedListNode(action);

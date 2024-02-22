@@ -2,9 +2,9 @@
 using System.Globalization;
 using Threading;
 
-const string NO_SYNC_LABEL = "no-sync(duration)";
+const string STRETCH_MEMORY_LABEL = "stretch memory";
+const string NO_SYNC_LABEL = "work duration without sync, ticks";
 const char DELIMITER = ';';
-const int WARMUP_ITERATIONS = 200;
 const int DEFAULT_ITERATIONS = 100_000;
 
 int[] workDurationsNs = { 100, 200, 300, 400, 500, 1000, 5000, 10_000, 50_000, 100_000, 500_000, 1000_000, 5_000_000, 10_000_000 };
@@ -18,63 +18,71 @@ var stopwatch = new Stopwatch();
 var workStopwatch = new Stopwatch();
 var enLocale = new CultureInfo("en-En");
 var benchmarks = new Dictionary<string, Func<int, int, Task>> {
+    { STRETCH_MEMORY_LABEL, serialQueueTasksMonitor },
     { NO_SYNC_LABEL, noSync },
+
     { "spinlock", spinLock },
     { "monitor", monitor },
     { "mutex", mutex },
     { "serial-queue-tasks-spinlock", serialQueueTasksSpinLock },
     { "serial-queue-tasks-monitor", serialQueueTasksMonitor },
     { "serial-queue-tasks-semaphoreslim", serialQueueTasksSemaphoreSlim },
-    { "serial-queue-borland", serialQueueBorland },
     { "serial-queue-spinlock", serialQueueSpinLock },
     { "serial-queue-monitor", serialQueueMonitor },
+    { "serial-queue-borland", serialQueueBorland },
 };
 
 // log headers
 
-Console.WriteLine("ms{0}{1}", DELIMITER, string.Join(DELIMITER, benchmarks.Keys));
+Console.WriteLine("work duration, ms" + DELIMITER + string.Join(DELIMITER, workDurationsNs.Select(x => x / 1000.0)));
 
-// run benchmarks for each work duration value
+// run benchmarks
 
-foreach (var workDurationNs in workDurationsNs)
+var noSyncResults = new List<float>(workDurationsNs.Length);
+
+foreach (var (label, benchmark) in benchmarks)
 {
-    var results = new List<float>(benchmarks.Count + 2) { workDurationNs / 1000.0f };
-    int workIterations = workIterationsPerDuration.GetValueOrDefault(workDurationNs, DEFAULT_ITERATIONS);
-    float noSyncWorkDurationTicks = 0; // later taken from no-sync benchmark
+    List<float>? results = null;
+    var runBenchmark = (int iterations, int workDurationNs) => runAndGetDuration(() => benchmark(iterations, workDurationNs));
 
-    // run benchmarks
+    // warmup
 
-    foreach (var (label, benchmark) in benchmarks)
+    await runBenchmark(10_000, 1000);
+    GC.Collect();
+
+    // run benchmark for all work duration values
+
+    for (int i = 0; i < workDurationsNs.Length; i += 1)
     {
-        var runBenchmark = (int iterations) => runAndGetDuration(() => benchmark(iterations, workDurationNs));
-
-        // warmup
-
-        await runBenchmark(WARMUP_ITERATIONS);
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
+        int workDurationNs = workDurationsNs[i];
+        int workIterations = workIterationsPerDuration.GetValueOrDefault(workDurationNs, DEFAULT_ITERATIONS);
 
         // run benchmark
 
-        var elapsed = await runBenchmark(workIterations);
+        var elapsed = await runBenchmark(workIterations, workDurationNs);
+        GC.Collect();
 
         // log result
 
         var ticksPerWork = elapsed.Ticks / (float)workIterations;
         if (label == NO_SYNC_LABEL)
         {
-            noSyncWorkDurationTicks = ticksPerWork;
-            results.Add(ticksPerWork); // log duration for no-sync benchmark
+            results ??= noSyncResults;
+            noSyncResults.Add(ticksPerWork); // log duration for no-sync benchmark
         }
-        else
+        else if (label != STRETCH_MEMORY_LABEL)
         {
-            results.Add(ticksPerWork - noSyncWorkDurationTicks); // log diff with no-sync for other benchmarks
+            results ??= new List<float>(workDurationsNs.Length);
+            results.Add(ticksPerWork - noSyncResults[i]); // log diff with no-sync duration for other benchmarks
         }
-        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
     }
 
     // log results
 
-    Console.WriteLine(string.Join(DELIMITER, results.Select(x => x.ToString(enLocale))));
+    if (label != STRETCH_MEMORY_LABEL)
+    {
+        Console.WriteLine(label + DELIMITER + string.Join(DELIMITER, results!.Select(x => x.ToString(enLocale))));
+    }
 }
 
 // utils
@@ -111,7 +119,7 @@ Task ParallelFor(int count, Action<Action> action, bool noParallelism = false)
 
 async Task<(long Ticks, long Ns)> runAndGetDuration(Func<Task> action)
 {
-    stopwatch!.Restart();
+    stopwatch.Restart();
     await action();
     stopwatch.Stop();
     return (stopwatch.ElapsedTicks, stopwatch.Elapsed.Nanoseconds);

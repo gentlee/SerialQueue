@@ -204,12 +204,14 @@ namespace Tests.Tasks
             // Act
 
             var counter = 0;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; i += 1)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-                    await queue.Enqueue(async () => {
-                        var index = counter++;
+                    await queue.Enqueue(async () =>
+                    {
+                        var index = counter;
+                        counter += 1;
                         await TestUtils.RandomDelay();
                         list.Add(index);
                     });
