@@ -150,7 +150,7 @@ namespace Tests.Tasks
 
             foreach (var number in range)
             {
-                var index = number % 2;
+                var index = number % 4;
                 if (index == 0)
                 {
                     await TestUtils.RandomDelay();
