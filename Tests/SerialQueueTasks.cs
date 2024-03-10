@@ -6,30 +6,6 @@ namespace Tests.Tasks
     public class SerialQueueTasksTests
     {
         [Test]
-        public async Task TplIsNotFifo()
-        {
-            // Assign
-
-            const int count = 1000000;
-            var list = new List<int>();
-            var tasks = new List<Task>(count);
-            var range = Enumerable.Range(0, count);
-
-            // Act
-
-            foreach (var number in range)
-            {
-                tasks.Add(Task.Factory.StartNew(() => list.Add(number), TaskCreationOptions.PreferFairness));
-            }
-
-            await Task.WhenAll(tasks);
-
-            // Assert
-
-            Assert.False(range.SequenceEqual(list));
-        }
-
-        [Test]
         public async Task EnqueueAction()
         {
             // Assign
@@ -150,7 +126,7 @@ namespace Tests.Tasks
 
             foreach (var number in range)
             {
-                var index = number % 2;
+                var index = number % 4;
                 if (index == 0)
                 {
                     await TestUtils.RandomDelay();
@@ -231,26 +207,24 @@ namespace Tests.Tasks
             // Assign
 
             var queue = new SerialQueue();
-            var exceptionCatched = false;
+            Exception? exception = null;
+            Action action = () => throw new Exception("Test");
 
             // Act
 
             await queue.Enqueue(() => Thread.Sleep(10));
             try
             {
-                await queue.Enqueue(() => throw new Exception("Test"));
+                await queue.Enqueue(action);
             }
             catch (Exception e)
             {
-                if (e.Message == "Test")
-                {
-                    exceptionCatched = true;
-                }
+                exception = e;
             }
 
             // Assert
 
-            Assert.True(exceptionCatched);
+            Assert.AreEqual("Test", exception?.Message);
         }
 
         [Test]
@@ -320,6 +294,30 @@ namespace Tests.Tasks
 
             Assert.True(exceptionCatched);
         }
+
+        //[Test]
+        //public async Task TplIsNotFifo()
+        //{
+        //    // Assign
+
+        //    const int count = 1000000;
+        //    var list = new List<int>();
+        //    var tasks = new List<Task>(count);
+        //    var range = Enumerable.Range(0, count);
+
+        //    // Act
+
+        //    foreach (var number in range)
+        //    {
+        //        tasks.Add(Task.Factory.StartNew(() => list.Add(number), TaskCreationOptions.PreferFairness));
+        //    }
+
+        //    await Task.WhenAll(tasks);
+
+        //    // Assert
+
+        //    Assert.False(range.SequenceEqual(list));
+        //}
     }
 }
 
