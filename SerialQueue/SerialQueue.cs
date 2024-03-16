@@ -24,8 +24,14 @@
             var mre = new ManualResetEvent(false);
             DispatchAsync(() =>
             {
-                action();
-                mre.Set();
+                try
+                {
+                    action();
+                }
+                finally
+                {
+                    mre.Set();
+                }
             });
             mre.WaitOne();
         }
