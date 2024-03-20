@@ -1,5 +1,5 @@
 # SerialQueue
-Lightweight C# implementations of FIFO serial queues from Apple's GCD, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
+Lightweight, high-performance C# implementations of FIFO serial queues from Apple's GCD, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
 
 Task-based implementation is more simple and convenient, while non-task is faster (check benchmark results).
 
