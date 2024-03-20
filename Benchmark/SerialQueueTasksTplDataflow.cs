@@ -1,55 +1,94 @@
 ﻿using System;
 using System.Threading.Tasks.Dataflow;
 
-namespace Threading
+namespace Threading.Tasks
 {
-    // THIS CLASS DOESN'T PASS TESTS AND IS NOT FIFO
-
-    public class SerialQueueTasksTplDataflow
+    public class SerialQueueTplDataflow
     {
-        ActionBlock<object> _actionBlock = new ActionBlock<object>(async action =>
-        {
-            if (action.GetType() == typeof(Action))
+        ActionBlock<object> _actionBlock = new ActionBlock<object>(
+            async action =>
             {
-                (action as Action)!();
+                if (action is Action)
+                {
+                    (action as Action)!();
+                }
+                else
+                {
+                    await (action as Func<Task>)!();
+                }
             }
-            else
-            {
-                await (action as Func<Task>)!();
-            }
-        }, new ExecutionDataflowBlockOptions()
-        {
-            MaxDegreeOfParallelism = 1
-        });
+        );
 
         public Task Enqueue(Action action)
         {
-            return _actionBlock.SendAsync(action);
+            var tsc = new TaskCompletionSource();
+            _actionBlock.SendAsync(() =>
+            {
+                try
+                {
+                    action();
+                    tsc.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tsc.SetException(e);
+                }
+            });
+            return tsc.Task;
         }
 
         public Task Enqueue(Func<Task> asyncAction)
         {
-            return _actionBlock.SendAsync(asyncAction);
+            var tsc = new TaskCompletionSource();
+            _actionBlock.SendAsync(async () =>
+            {
+                try
+                {
+                    await asyncAction();
+                    tsc.SetResult();
+                }
+                catch (Exception e)
+                {
+                    tsc.SetException(e);
+                }
+            });
+            return tsc.Task;
         }
 
-        public async Task<T> Enqueue<T>(Func<T> function)
+        public Task<T> Enqueue<T>(Func<T> function)
         {
-            T? result = default(T);
-            await _actionBlock.SendAsync(() =>
+            var tsc = new TaskCompletionSource<T>();
+            _actionBlock.SendAsync(() =>
             {
-                result = function();
+                try
+                {
+                    var result = function();
+                    tsc.SetResult(result);
+                }
+                catch (Exception e)
+                {
+                    tsc.SetException(e);
+                }
             });
-            return result!;
+            return tsc.Task;
         }
 
-        public async Task<T> Enqueue<T>(Func<Task<T>> asyncFunction)
+        public Task<T> Enqueue<T>(Func<Task<T>> asyncFunction)
         {
-            T? result = default(T);
-            await _actionBlock.SendAsync(async () =>
+            var tsc = new TaskCompletionSource<T>();
+            _actionBlock.SendAsync(async () =>
             {
-                result = await asyncFunction();
+                try
+                {
+                    var result = await asyncFunction();
+                    tsc.SetResult(result);
+                }
+                catch (Exception e)
+                {
+                    tsc.SetException(e);
+                }
             });
-            return result!;
+            return tsc.Task;
         }
     }
 }
