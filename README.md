@@ -19,21 +19,21 @@ Covered with tests.
 <details>
 <summary>Chart 1: Approximate synchronization costs depending on the operation duration (smaller is better).</summary>
 
-![chart-1](https://github.com/gentlee/SerialQueue/assets/2361140/e2ea4a5a-fe3c-4e6c-9af2-f01e8ef7e2a2)
+![chart-1](https://github.com/gentlee/SerialQueue/assets/2361140/bab377e6-15a2-4ed2-9db1-621243f30e5b)
 
 </details>
 
 <details>
 <summary>Chart 2: Zoomed in (smaller is better).</summary>
 
-![chart-2](https://github.com/gentlee/SerialQueue/assets/2361140/d1cc4ccb-2eb4-429b-901a-b9b8d7746fd0)
+![chart-2](https://github.com/gentlee/SerialQueue/assets/2361140/a9b52ae0-a455-4e78-a721-81b3146c0db4)
 
 </details>
 
 <details>
 <summary>Chart 3: Zoomed in for the shortest operations (smaller is better).</summary>
 
-![chart-3](https://github.com/gentlee/SerialQueue/assets/2361140/45539b3f-7356-4766-b9c7-85e5d482fdab)
+![chart-3](https://github.com/gentlee/SerialQueue/assets/2361140/70e442a5-314a-42cc-9ab8-354b6514f6ae)
 
 </details>
 
@@ -44,7 +44,7 @@ Synchronization mechanisms:
 - **SpinLock**, **Monitor**, **Mutex** - standard synchronization primitives.
 - **SemaphoreSlim** is a simplified alternative to Semaphore.
 - **TPL Dataflow ActionBlock** - implementation of a queue using TPL Dataflow ActionBlock.
-- **SerialQueue borland** - queue [implementation](https://github.com/borland/SerialQueue) by user @borland.
+- **SerialQueue (by @borland)** - queue [implementation](https://github.com/borland/SerialQueue) from user @borland.
 - **SerialQueue** is a lightweight serial queue implementation from **this repository**.
 - **SerialQueue** Tasks is a Task-based serial queue implementation from **this repository**.
 
