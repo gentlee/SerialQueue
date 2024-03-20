@@ -7,10 +7,10 @@ Covered with tests.
 
 ### Table of contents
 
- - [Benchmark results](https://github.com/gentlee/SerialQueue#benchmarkresults)
+ - [Benchmark results](https://github.com/gentlee/SerialQueue#benchmark-results)
  - [Interface](https://github.com/gentlee/SerialQueue#interface)
  - [Installation](https://github.com/gentlee/SerialQueue#installation)
- - [Task-based example](https://github.com/gentlee/SerialQueue#task-basedexample)
+ - [Task-based example](https://github.com/gentlee/SerialQueue#task-based-example)
  - [Troubleshooting](https://github.com/gentlee/SerialQueue#troubleshooting)
    - [Deadlocks](https://github.com/gentlee/SerialQueue#deadlocks)
 
