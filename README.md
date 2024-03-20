@@ -44,7 +44,7 @@ Synchronization mechanisms:
 - **SpinLock**, **Monitor**, **Mutex** - standard synchronization primitives.
 - **SemaphoreSlim** is a simplified alternative to Semaphore.
 - **TPL Dataflow ActionBlock** - implementation of a queue using TPL Dataflow ActionBlock.
-- **SerialQueue Borland** - queue implementation from Borland.
+- **SerialQueue borland** - queue [implementation](https://github.com/borland/SerialQueue) by user @borland.
 - **SerialQueue** is a lightweight serial queue implementation from **this repository**.
 - **SerialQueue** Tasks is a Task-based serial queue implementation from **this repository**.
 
