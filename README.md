@@ -77,7 +77,7 @@ async Task SomeAsyncMethod()
 }
 ```
 
-But serial queues **don't block callers thread** on waiting for synced operation to start, **evaluate** synced operations on **thread pool** and often **perform better**, especially for long synced operations.
+But serial queues are **asynchronous**, **don't block callers threads** while waiting for synced operation to start, evaluate synced operations on **thread pool** and often **perform better**, especially for long synced operations.
 
 ### Benchmark results
 
