@@ -64,7 +64,7 @@ void SomeAsyncMethod()
 }
 ```
 
-Previous examples are equal to the next one with Monitor (lock):
+Previous examples do the same as the next one with Monitor (lock):
 
 ```C#
 readonly object locker = new object();
