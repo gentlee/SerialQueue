@@ -7,12 +7,77 @@ Covered with tests.
 
 ### Table of contents
 
- - [Benchmark results](https://github.com/gentlee/SerialQueue#benchmark-results)
  - [Interface](https://github.com/gentlee/SerialQueue#interface)
  - [Installation](https://github.com/gentlee/SerialQueue#installation)
- - [Task-based example](https://github.com/gentlee/SerialQueue#task-based-example)
+ - [Examples](https://github.com/gentlee/SerialQueue#examples)
+ - [Benchmark results](https://github.com/gentlee/SerialQueue#benchmark-results)
  - [Troubleshooting](https://github.com/gentlee/SerialQueue#troubleshooting)
    - [Deadlocks](https://github.com/gentlee/SerialQueue#deadlocks)
+
+### Interface
+
+```C#
+// Task based version (recommended)
+// SerialQueue/SerialQueueTasks.cs
+class SerialQueue {
+    Task Enqueue(Action action);
+    Task<T> Enqueue<T>(Func<T> function);
+    Task Enqueue(Func<Task> asyncAction);
+    Task<T> Enqueue<T>(Func<Task<T>> asyncFunction);
+}
+
+// Lightweight version
+// SerialQueue/SerialQueue.cs
+class SerialQueue {
+  void DispatchSync(Action action);
+  void DispatchAsync(Action action);
+}
+```
+
+### Installation
+
+Just copy the source code of `SerialQueue/SerialQueueTasks.cs` or `SerialQueue/SerialQueue.cs` file to your project.
+    
+### Examples
+
+Task-based queue usage:
+```C#
+readonly SerialQueue queue = new SerialQueue();
+
+async Task SomeAsyncMethod()
+{
+    await queue.Enqueue(() => {
+        // synchronized code
+    });
+}
+```
+
+Non-task based example:
+```C#
+readonly SerialQueue queue = new SerialQueue();
+
+void SomeAsyncMethod()
+{
+    queue.DispatchAsync(() => {
+        // synchronized code
+    });
+}
+```
+
+Previous examples are equal to the next one with Monitor (lock):
+
+```C#
+readonly object locker = new object();
+
+async Task SomeAsyncMethod()
+{
+    lock(locker) {
+         // synchronized code
+    }
+}
+```
+
+But serial queues **don't block callers thread** on waiting for synced operation to start, **evaluate** synced operations on **thread pool** and often **perform better**, especially for long synced operations.
 
 ### Benchmark results
 
@@ -47,52 +112,6 @@ Synchronization mechanisms:
 - **SerialQueue (by @borland)** - queue [implementation](https://github.com/borland/SerialQueue) from user @borland.
 - **SerialQueue** is a lightweight serial queue implementation from **this repository**.
 - **SerialQueue** Tasks is a Task-based serial queue implementation from **this repository**.
-
-
-### Interface
-
-```C#
-// Task based version (recommended)
-// SerialQueue/SerialQueueTasks.cs
-class SerialQueue {
-    Task Enqueue(Action action);
-    Task<T> Enqueue<T>(Func<T> function);
-    Task Enqueue(Func<Task> asyncAction);
-    Task<T> Enqueue<T>(Func<Task<T>> asyncFunction);
-}
-
-// Lightweight version
-// SerialQueue/SerialQueue.cs
-class SerialQueue {
-  void DispatchSync(Action action);
-  void DispatchAsync(Action action);
-}
-```
-
-### Installation
-
-Just copy the source code of `SerialQueue/SerialQueueTasks.cs` or `SerialQueue/SerialQueue.cs` file to your project.
-    
-### Task-based example
-
-```C#
-readonly SerialQueue queue = new SerialQueue();
-
-async Task SomeAsyncMethod()
-{
-    // C# 5+
-    
-    await queue.Enqueue(SyncAction);
-    
-    var result = await queue.Enqueue(AsyncFunction);
-    
-    // Old approach
-    
-    queue.Enqueue(AsyncFunction).ContinueWith(t => {
-        var result = t.Result;
-    });
-}
-```
 
 ### Troubleshooting
 
