@@ -19,6 +19,9 @@
         private LinkedListNode? _queueLast;
         private bool _isRunning = false;
 
+        /// <summary>
+        /// Not recommended, use DispatchAsync instead. Queue is made to be used used asynchronously.
+        /// </summary>
         public void DispatchSync(Action action)
         {
             var mre = new ManualResetEvent(false);
