@@ -1,10 +1,11 @@
-### Donations 🙌
-
-**BTC:** bc1qs0sq7agz5j30qnqz9m60xj4tt8th6aazgw7kxr \
-**ETH:** 0x1D834755b5e889703930AC9b784CB625B3cd833E \
-**USDT(Tron):** TPrCq8LxGykQ4as3o1oB8V7x1w2YPU2o5n \
-**TON:** EQAtBuFWI3H_LpHfEToil4iYemtfmyzlaJpahM3tFSoxojvV \
-**DOGE:** D7GMQdKhKC9ymbT9PtcetSFTQjyPRRfkwT
+<details>
+  <summary>Donations 🙌</summary>
+  <b>BTC:</b> bc1qs0sq7agz5j30qnqz9m60xj4tt8th6aazgw7kxr <br>
+  <b>ETH:</b> 0x1D834755b5e889703930AC9b784CB625B3cd833E <br>
+  <b>USDT(Tron):</b> TPrCq8LxGykQ4as3o1oB8V7x1w2YPU2o5n <br>
+  <b>TON:</b> EQAtBuFWI3H_LpHfEToil4iYemtfmyzlaJpahM3tFSoxojvV <br>
+  <b>DOGE:</b> D7GMQdKhKC9ymbT9PtcetSFTQjyPRRfkwT <br>
+</details>
 
 # SerialQueue
 Lightweight, high-performance C# implementations of FIFO serial queues from Apple's GCD, which are often much better to use for synchronization rather than locks - they don't block caller's thread, and rather than creating new threads - they use thread pool.
